@@ -5,6 +5,7 @@ export default function App() {
   const [selectedOption, setSelectedOption] = useState("");
   const [selectedGameMode, setSelectedGameMode] = useState("");
   const [selectedGameType, setSelectedGameType] = useState("");
+  const [selectedHeroes, setSelectedHeroes] = useState(Array(113).fill(0));
   const [selectedHeroesTeam1, setSelectedHeroesTeam1] = useState(Array(5).fill(""));
   const [selectedHeroesTeam2, setSelectedHeroesTeam2] = useState(Array(5).fill(""));
 
@@ -157,26 +158,37 @@ export default function App() {
     setSelectedGameType(event.target.value);
   };
 
-  const handleHeroChangeTeam1 = (index) => (event) => {
-    const newSelectedHeroes = [...selectedHeroesTeam1];
-    newSelectedHeroes[index] = event.target.value;
-    setSelectedHeroesTeam1(newSelectedHeroes);
-  };
+  const handleHeroChange = (team, index) => (event) => {
+    const heroId = parseInt(event.target.value);
+    const newSelectedHeroes = [...selectedHeroes];
+    const newSelectedHeroesTeam1 = [...selectedHeroesTeam1];
+    const newSelectedHeroesTeam2 = [...selectedHeroesTeam2];
 
-  const handleHeroChangeTeam2 = (index) => (event) => {
-    const newSelectedHeroes = [...selectedHeroesTeam2];
-    newSelectedHeroes[index] = event.target.value;
-    setSelectedHeroesTeam2(newSelectedHeroes);
+    // Clear previous hero choice if it was set
+    if (team === 1) {
+      const previousHeroId = newSelectedHeroesTeam1[index];
+      if (previousHeroId) newSelectedHeroes[previousHeroId - 1] = 0;
+      newSelectedHeroesTeam1[index] = heroId;
+      newSelectedHeroes[heroId - 1] = 1;
+    } else {
+      const previousHeroId = newSelectedHeroesTeam2[index];
+      if (previousHeroId) newSelectedHeroes[previousHeroId - 1] = 0;
+      newSelectedHeroesTeam2[index] = heroId;
+      newSelectedHeroes[heroId - 1] = -1;
+    }
+
+    setSelectedHeroes(newSelectedHeroes);
+    setSelectedHeroesTeam1(newSelectedHeroesTeam1);
+    setSelectedHeroesTeam2(newSelectedHeroesTeam2);
   };
 
   const handlePredict = () => {
     // Prepare data to be posted or logged
     const data = {
-      region: selectedOption,
-      gameMode: selectedGameMode,
-      gameType: selectedGameType,
-      heroesTeam1: selectedHeroesTeam1,
-      heroesTeam2: selectedHeroesTeam2
+      cluster_id: selectedOption,
+      game_mode: selectedGameMode,
+      game_type: selectedGameType,
+      heroes: selectedHeroes,
     };
     console.log("Data to be submitted:", data);
     // Here, you could replace this console.log with an API call to submit data
@@ -257,12 +269,12 @@ export default function App() {
                   id={`team1-hero-${index}`} 
                   name={`team1-hero-${index}`} 
                   value={selectedHeroesTeam1[index]} 
-                  onChange={handleHeroChangeTeam1(index)}
+                  onChange={handleHeroChange(1, index)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 >
                   <option value="" disabled>Select Hero</option>
                   {heroes.map(hero => (
-                    <option key={hero.id} value={hero.name}>{hero.localized_name}</option>
+                    <option key={hero.id} value={hero.id}>{hero.localized_name}</option>
                   ))}
                 </select>
               </div>
@@ -283,12 +295,12 @@ export default function App() {
                   id={`team2-hero-${index}`} 
                   name={`team2-hero-${index}`} 
                   value={selectedHeroesTeam2[index]} 
-                  onChange={handleHeroChangeTeam2(index)}
+                  onChange={handleHeroChange(2, index)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400"
                 >
                   <option value="" disabled>Select Hero</option>
                   {heroes.map(hero => (
-                    <option key={hero.id} value={hero.name}>{hero.localized_name}</option>
+                    <option key={hero.id} value={hero.id}>{hero.localized_name}</option>
                   ))}
                 </select>
               </div>
@@ -307,9 +319,6 @@ export default function App() {
         </div>
         
       </div>
-      
     </div>
-
-    
   );
 }
